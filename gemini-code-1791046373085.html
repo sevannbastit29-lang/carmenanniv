@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joyeux Anniversaire Carmen ! 🎉</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Permanent+Marker&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #a1c4fd 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        h1, h2, h3, .font-fun {
+            font-family: 'Fredoka', cursive;
+        }
+        .graffiti-title {
+            font-family: 'Permanent Marker', cursive;
+            text-shadow: 3px 3px 0px #000, 5px 5px 0px #ff007f, 7px 7px 10px rgba(0,0,0,0.5);
+            letter-spacing: 2px;
+        }
+        .candle-btn {
+            position: absolute;
+            cursor: pointer;
+            transition: transform 0.2s, filter 0.2s;
+            z-index: 50;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+            animation: bounceSlow 2s infinite ease-in-out;
+        }
+        .candle-btn:hover {
+            transform: scale(1.4) rotate(15deg);
+        }
+        @keyframes bounceSlow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .animate-wiggle {
+            animation: wiggle 0.5s ease-in-out infinite;
+        }
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        /* Style des confettis accumulés & tourbillon */
+        .confetti-piece {
+            position: fixed;
+            width: 10px;
+            height: 15px;
+            background-color: #f00;
+            top: -20px;
+            z-index: 9999;
+            opacity: 0.9;
+            pointer-events: none;
+            border-radius: 2px;
+            animation: fallToGround linear forwards;
+        }
+
+        @keyframes fallToGround {
+            0% {
+                transform: translateY(0) rotate(0deg) translateX(0);
+            }
+            100% {
+                transform: translateY(calc(100vh - 40px)) rotate(720deg) translateX(var(--drift));
+            }
+        }
+
+        .swirl-out {
+            animation: swirlCenter 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+        }
+
+        @keyframes swirlCenter {
+            0% {
+                transform: scale(1) rotate(0deg) translate(0, 0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(0) rotate(1440deg) translate(calc(50vw - 50%), calc(50vh - 50%));
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body class="text-gray-800 relative pb-20">
+
+    <!-- HEADER / HERO -->
+    <header class="text-center py-12 px-4 relative z-10">
+        <span class="bg-yellow-300 text-yellow-900 text-sm font-extrabold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-md animate-pulse">
+            🚨 Alerte Dossiers & Anniversaire de Carmen 🚨
+        </span>
+        <h1 class="graffiti-title text-4xl md:text-6xl text-yellow-300 mt-4 uppercase">
+            Joyeux Anniversaire Carmen ! 🎂✨
+        </h1>
+        <p class="text-lg md:text-xl text-purple-900 font-medium mt-3 max-w-2xl mx-auto bg-white/60 backdrop-blur-md p-3 rounded-2xl shadow-sm">
+            Bienvenue sur le site le plus coloré, chaotique et compromettant de l'année. Trouve les 6 bougies cachées, survis aux quiz et amuse-toi bien ! 💖
+        </p>
+        <button onclick="triggerMegaConfetti()" class="mt-6 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold text-lg px-8 py-4 rounded-full shadow-xl transform transition hover:scale-105 active:scale-95">
+            🎉 EXPLOSION DE CONFETTIS ! 🎉
+        </button>
+    </header>
+
+    <!-- SECTION 1 : CHASSE AUX 6 BOUGIES & DOSSIERS -->
+    <section class="max-w-5xl mx-auto px-4 my-10 relative">
+        <div class="bg-white/80 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-2xl border-4 border-pink-300 relative overflow-hidden">
+            <div class="absolute top-0 right-0 bg-pink-500 text-white text-xs font-bold px-4 py-1 rounded-bl-xl uppercase tracking-wider">
+                Jeu 1 : Où est Charlie des Bougies ?
+            </div>
+            <h2 class="text-3xl font-bold text-purple-800 flex items-center gap-2">
+                🕯️ Trouve les 6 bougies cachées !
+            </h2>
+            <p class="text-gray-600 mt-2">
+                Il y a <span class="font-bold text-pink-600">6 bougies</span> dissimulées visuellement dans cette section. Clique dessus pour débloquer les 6 pépites embarrassantes ! (<span id="candles-found">0</span>/6 trouvées)
+            </p>
+
+            <!-- Zone de jeu visuelle (6 dossiers) -->
+            <div id="dossiers-container" class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                <!-- Dossier 1 -->
+                <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 text-center relative shadow-inner">
+                    <span class="inline-block bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded-md mb-2">Dossier #1</span>
+                    <div class="overflow-hidden rounded-xl h-44 flex items-center justify-center bg-black/5 relative">
+                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='100%' height='100%' fill='%23fce7f3'/><text x='50%' y='50%' font-size='70' dominant-baseline='middle' text-anchor='middle'>🔒</text></svg>" id="preview-1" class="w-full h-full object-cover filter blur-sm transition duration-500" alt="Censuré">
+                        <div id="content-1" class="absolute inset-0 hidden flex items-center justify-center bg-black/80 p-2">
+                            <img src="WhatsApp Image 2026-10-03 at 17.57.28 (1).jpeg" class="max-h-full max-w-full rounded-lg object-contain shadow-lg" alt="Dossier 1">
+                        </div>
+                    </div>
+                    <p class="text-xs text-purple-700 mt-2 font-semibold" id="text-1">🔒 Trouve la bougie 1</p>
+                </div>
+
+                <!-- Dossier 2 -->
+                <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 text-center relative shadow-inner">
+                    <span class="inline-block bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded-md mb-2">Dossier #2</span>
+                    <div class="overflow-hidden rounded-xl h-44 flex items-center justify-center bg-black/5 relative">
+                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='100%' height='100%' fill='%23fce7f3'/><text x='50%' y='50%' font-size='70' dominant-baseline='middle' text-anchor='middle'>🔒</text></svg>" id="preview-2" class="w-full h-full object-cover filter blur-sm transition duration-500" alt="Censuré">
+                        <div id="content-2" class="absolute inset-0 hidden flex items-center justify-center bg-black/80 p-2">
+                            <img src="WhatsApp Image 2026-10-03 at 17.57.28.jpeg" class="max-h-full max-w-full rounded-lg object-contain shadow-lg" alt="Dossier 2">
+                        </div>
+                    </div>
+                    <p class="text-xs text-purple-700 mt-2 font-semibold" id="text-2">🔒 Trouve la bougie 2</p>
+                </div>
+
+                <!-- Dossier 3 -->
+                <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 text-center relative shadow-inner">
+                    <span class="inline-block bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded-md mb-2">Dossier #3</span>
+                    <div class="overflow-hidden rounded-xl h-44 flex items-center justify-center bg-black/5 relative">
+                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='100%' height='100%' fill='%23fce7f3'/><text x='50%' y='50%' font-size='70' dominant-baseline='middle' text-anchor='middle'>🔒</text></svg>" id="preview-3" class="w-full h-full object-cover filter blur-sm transition duration-500" alt="Censuré">
+                        <div id="content-3" class="absolute inset-0 hidden flex items-center justify-center bg-black/80 p-2">
+                            <img src="WhatsApp Image 2026-10-03 at 17.56.31.jpeg" class="max-h-full max-w-full rounded-lg object-contain shadow-lg" alt="Dossier 3">
+                        </div>
+                    </div>
+                    <p class="text-xs text-purple-700 mt-2 font-semibold" id="text-3">🔒 Trouve la bougie 3</p>
+                </div>
+
+                <!-- Dossier 4 -->
+                <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 text-center relative shadow-inner">
+                    <span class="inline-block bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded-md mb-2">Dossier #4</span>
+                    <div class="overflow-hidden rounded-xl h-44 flex items-center justify-center bg-black/5 relative">
+                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='100%' height='100%' fill='%23fce7f3'/><text x='50%' y='50%' font-size='70' dominant-baseline='middle' text-anchor='middle'>🔒</text></svg>" id="preview-4" class="w-full h-full object-cover filter blur-sm transition duration-500" alt="Censuré">
+                        <div id="content-4" class="absolute inset-0 hidden flex items-center justify-center bg-black/80 p-2">
+                            <img src="WhatsApp Image 2026-10-03 at 17.55.28.jpeg" class="max-h-full max-w-full rounded-lg object-contain shadow-lg" alt="Dossier 4">
+                        </div>
+                    </div>
+                    <p class="text-xs text-purple-700 mt-2 font-semibold" id="text-4">🔒 Trouve la bougie 4</p>
+                </div>
+
+                <!-- Dossier 5 (Vidéo 1) -->
+                <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 text-center relative shadow-inner">
+                    <span class="inline-block bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded-md mb-2">Dossier #5 (Vidéo)</span>
+                    <div class="overflow-hidden rounded-xl h-44 flex items-center justify-center bg-black/5 relative">
+                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='100%' height='100%' fill='%23fce7f3'/><text x='50%' y='50%' font-size='70' dominant-baseline='middle' text-anchor='middle'>🔒</text></svg>" id="preview-5" class="w-full h-full object-cover filter blur-sm transition duration-500" alt="Censuré">
+                        <div id="content-5" class="absolute inset-0 hidden flex items-center justify-center bg-black/80 p-2">
+                            <video src="WhatsApp Video 2026-10-03 at 17.55.56 (1).mp4" controls class="max-h-full max-w-full rounded-lg object-contain shadow-lg"></video>
+                        </div>
+                    </div>
+                    <p class="text-xs text-purple-700 mt-2 font-semibold" id="text-5">🔒 Trouve la bougie 5</p>
+                </div>
+
+                <!-- Dossier 6 (Vidéo 2) -->
+                <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 text-center relative shadow-inner">
+                    <span class="inline-block bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded-md mb-2">Dossier #6 (Vidéo)</span>
+                    <div class="overflow-hidden rounded-xl h-44 flex items-center justify-center bg-black/5 relative">
+                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='100%' height='100%' fill='%23fce7f3'/><text x='50%' y='50%' font-size='70' dominant-baseline='middle' text-anchor='middle'>🔒</text></svg>" id="preview-6" class="w-full h-full object-cover filter blur-sm transition duration-500" alt="Censuré">
+                        <div id="content-6" class="absolute inset-0 hidden flex items-center justify-center bg-black/80 p-2">
+                            <video src="WhatsApp Video 2026-10-03 at 17.55.56.mp4" controls class="max-h-full max-w-full rounded-lg object-contain shadow-lg"></video>
+                        </div>
+                    </div>
+                    <p class="text-xs text-purple-700 mt-2 font-semibold" id="text-6">🔒 Trouve la bougie 6</p>
+                </div>
+            </div>
+
+            <!-- 6 BOUGIES CACHÉES VISIBLES -->
+            <button onclick="unlockDossier(1)" class="candle-btn text-2xl absolute top-6 right-8 bg-yellow-100 hover:bg-yellow-200 p-1.5 rounded-full border-2 border-yellow-400 shadow-md" title="Bougie 1">🕯️</button>
+            <button onclick="unlockDossier(2)" class="candle-btn text-xl absolute bottom-4 left-6 bg-yellow-100 hover:bg-yellow-200 p-1 rounded-full border-2 border-yellow-400 shadow-md animate-wiggle" title="Bougie 2">🎂</button>
+            <button onclick="unlockDossier(3)" class="candle-btn text-lg absolute top-36 left-1/3 bg-yellow-100 hover:bg-yellow-200 px-2 py-0.5 rounded-full border border-yellow-400 shadow-md" title="Bougie 3">🕯️</button>
+            <button onclick="unlockDossier(4)" class="candle-btn text-2xl absolute bottom-6 right-6 bg-yellow-100 hover:bg-yellow-200 p-1.5 rounded-full border-2 border-yellow-400 shadow-md" title="Bougie 4">🎂</button>
+            <button onclick="unlockDossier(5)" class="candle-btn text-xl absolute top-1/2 left-2 bg-yellow-100 hover:bg-yellow-200 p-1 rounded-full border-2 border-yellow-400 shadow-md animate-bounce" title="Bougie 5">🕯️</button>
+            <button onclick="unlockDossier(6)" class="candle-btn text-2xl absolute top-1/2 right-2 bg-yellow-100 hover:bg-yellow-200 p-1 rounded-full border-2 border-yellow-400 shadow-md" title="Bougie 6">🎂</button>
+        </div>
+    </section>
+
+    <!-- SECTION 2 : QUIZ K-POP (10 QUESTIONS) -->
+    <section class="max-w-5xl mx-auto px-4 my-10">
+        <div class="bg-white/80 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-2xl border-4 border-purple-300 relative">
+            <div class="absolute top-0 right-0 bg-purple-600 text-white text-xs font-bold px-4 py-1 rounded-bl-xl uppercase tracking-wider">
+                Jeu 2 : Quiz K-Pop (10 Questions)
+            </div>
+            <h2 class="graffiti-title text-2xl text-purple-800">🎶 Le Grand Quiz K-Pop de Carmen</h2>
+            <p class="text-gray-600 mt-2">Retrouve les noms des groupes via leurs emojis, leurs années de début et leur nombre de membres !</p>
+
+            <div id="kpop-quiz-container" class="mt-6 space-y-6"></div>
+        </div>
+    </section>
+
+    <!-- SECTION 3 : QUIZ ANIMÉ ADAPTÉ AUX 6 PHOTOS DE PERSONNAGES -->
+    <section class="max-w-5xl mx-auto px-4 my-10">
+        <div class="bg-white/80 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-2xl border-4 border-blue-300 relative">
+            <div class="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-4 py-1 rounded-bl-xl uppercase tracking-wider">
+                Jeu 3 : Quiz Personnages Animés
+            </div>
+            <h2 class="graffiti-title text-2xl text-blue-800">⛩️ Retrouve les Personnages Animés !</h2>
+            <p class="text-gray-600 mt-2">Teste ta culture otaku à partir des images fournies. Si tu te trompes, tu peux réessayer !</p>
+
+            <div id="anime-quiz-container" class="mt-6 space-y-6"></div>
+        </div>
+    </section>
+
+    <!-- SECTION 4 : LE CLICKER DE LA HONTE -->
+    <section class="max-w-5xl mx-auto px-4 my-10">
+        <div class="bg-white/80 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-2xl border-4 border-yellow-300 relative text-center">
+            <div class="absolute top-0 right-0 bg-yellow-500 text-white text-xs font-bold px-4 py-1 rounded-bl-xl uppercase tracking-wider">
+                Jeu 4 : Frénésie de Clics
+            </div>
+            <h2 class="graffiti-title text-2xl text-yellow-800">⚡ Le Clicker de la Honte</h2>
+            <p class="text-gray-600 mt-2">Clique le plus de fois possible sur le gâteau en 10 secondes !</p>
+
+            <div class="my-6">
+                <div class="text-4xl font-extrabold text-purple-900 mb-2">Score : <span id="click-score">0</span></div>
+                <div class="text-sm font-semibold text-gray-500 mb-4">Temps restant : <span id="click-timer">10</span>s</div>
+                <button id="clicker-target" onclick="incrementClick()" class="bg-gradient-to-r from-yellow-400 to-pink-500 hover:from-yellow-500 hover:to-pink-600 text-white text-5xl p-6 rounded-full shadow-2xl transform transition active:scale-90 mx-auto block">
+                    🎂
+                </button>
+            </div>
+            <button id="start-clicker-btn" onclick="startClickerGame()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-6 py-3 rounded-xl shadow-md">
+                Lancer le défi des clics !
+            </button>
+        </div>
+    </section>
+
+    <!-- SCRIPTS -->
+    <script>
+        let foundCount = 0;
+        let confettiCollection = [];
+        let totalClicks = 0;
+
+        function triggerMegaConfetti() {
+            totalClicks++;
+
+            // Explosion classique Canvas-Confetti
+            confetti({
+                particleCount: 120,
+                spread: 100,
+                origin: { y: 0.6 }
+            });
+
+            // Création de confettis physiques qui s'accumulent sur la page
+            const colors = ['#ff007f', '#ffeb3b', '#9c27b0', '#00bcd4', '#4caf50', '#ff5722', '#e91e63'];
+            const count = 70;
+
+            for (let i = 0; i < count; i++) {
+                const conf = document.createElement('div');
+                conf.className = 'confetti-piece';
+                conf.style.left = Math.random() * window.innerWidth + 'px';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                
+                // Forme aléatoire (carré ou rectangle)
+                if (Math.random() > 0.5) {
+                    conf.style.width = '12px';
+                    conf.style.height = '12px';
+                    conf.style.borderRadius = '50%';
+                }
+
+                const duration = Math.random() * 2 + 1.5; // entre 1.5s et 3.5s de chute
+                const drift = (Math.random() - 0.5) * 300 + 'px';
+                conf.style.animationDuration = duration + 's';
+                conf.style.setProperty('--drift', drift);
+
+                // On stoppe l'animation en bas de l'écran pour qu'ils s'accumulent
+                conf.style.animationTimingFunction = 'cubic-bezier(0.25, 1, 0.5, 1)';
+                
+                // Position finale aléatoire proche du bas
+                const finalBottom = Math.random() * 40; 
+                conf.style.bottom = finalBottom + 'px';
+                conf.style.top = 'auto';
+
+                document.body.appendChild(conf);
+                confettiCollection.push(conf);
+
+                // Fixer la position une fois tombés pour qu'ils s'empilent au sol
+                setTimeout(() => {
+                    conf.style.animation = 'none';
+                    conf.style.bottom = finalBottom + 'px';
+                    conf.style.top = 'auto';
+                }, duration * 1000);
+            }
+
+            // Si on clique trop souvent (ex: 5 explosions), la page est submergée et déclenche le tourbillon d'aspiration !
+            if (totalClicks >= 5) {
+                totalClicks = 0;
+                setTimeout(triggerSwirlVortex, 600);
+            }
+        }
+
+        function triggerSwirlVortex() {
+            // Appliquer l'animation de tourbillon central à tous les confettis accumulés
+            confettiCollection.forEach((conf, index) => {
+                // Petit délai en cascade pour un effet tourbillon stylé
+                setTimeout(() => {
+                    conf.classList.add('swirl-out');
+                }, index * 3);
+            });
+
+            // Nettoyage de la DOM après la fin du tourbillon
+            setTimeout(() => {
+                confettiCollection.forEach(conf => conf.remove());
+                confettiCollection = [];
+            }, 2000);
+        }
+
+        window.onload = () => {
+            setTimeout(triggerMegaConfetti, 500);
+            loadKpopQuiz();
+            loadAnimeQuiz();
+        };
+
+        function unlockDossier(id) {
+            const preview = document.getElementById(`preview-${id}`);
+            const content = document.getElementById(`content-${id}`);
+            const text = document.getElementById(`text-${id}`);
+
+            if (preview && !preview.classList.contains('unlocked')) {
+                preview.classList.add('unlocked', 'hidden');
+                content.classList.remove('hidden');
+                text.innerHTML = "✅ Dossier débloqué ! Oups la honte... 🤭";
+                text.className = "text-xs text-green-600 mt-2 font-bold";
+                foundCount++;
+                document.getElementById('candles-found').innerText = foundCount;
+                triggerMegaConfetti();
+
+                if (foundCount === 6) {
+                    setTimeout(() => {
+                        alert("🎉 Incroyable ! Carmen a trouvé tous les dossiers compromettants ! Joyeux anniversaire ! 💖");
+                    }, 300);
+                }
+            }
+        }
+
+        // ---------- QUIZ K-POP (10 QUESTIONS) ----------
+        const kpopQuestions = [
+            { q: "1. Groupe débuté en 2016 à 4 membres : 🖤🩷 ?", options: ["Blackpink", "2NE1", "Red Velvet", "ITZY"], answer: 0 },
+            { q: "2. Groupe légendaire débuté en 2013 à 7 membres : 💜👑 ?", options: ["EXO", "BTS", "GOT7", "Monsta X"], answer: 1 },
+            { q: "3. Groupe débuté en 2015 à 9 membres (connues pour 'Fancy') : 🍭✨ ?", options: ["Blackpink", "Twice", "Aespa", "IVE"], answer: 1 },
+            { q: "4. Groupe débuté en 2020 à 4 membres (de 'Next Level') : 🦋🔮 ?", options: ["Aespa", "Le Sserafim", "NewJeans", "(G)I-DLE"], answer: 0 },
+            { q: "5. Groupe débuté en 2022 à 5 membres (de 'Hype Boy') : 👖🐰 ?", options: ["IVE", "Nmixx", "NewJeans", "Kep1er"], answer: 2 },
+            { q: "6. Groupe masculin débuté en 2012 à 9 puis 12 membres : 🪐⚡ ?", options: ["Stray Kids", "EXO", "NCT", "Treasure"], answer: 1 },
+            { q: "7. Groupe débuté en 2018 à 8 membres (de 'God's Menu') : 🐺🔥 ?", options: ["Stray Kids", "ATEEZ", "TXT", "Enhypen"], answer: 0 },
+            { q: "8. Groupe débuté en 2019 à 5 membres (de 'Crown') : 🌟TXT ?", options: ["TXT", "ENHYPEN", "TREASURE", "THE BOYZ"], answer: 0 },
+            { q: "9. Groupe féminin débuté en 2021 à 6 membres (de 'Love Dive') : 🦢💎 ?", options: ["IVE", "Aespa", "Kep1er", "StayC"], answer: 0 },
+            { q: "10. Groupe débuté en 2014 à 7 membres (de 'Mamacita') : 💙🕺 ?", options: ["Super Junior", "Shinee", "BigBang", "Highlight"], answer: 0 }
+        ];
+
+        function loadKpopQuiz() {
+            const container = document.getElementById('kpop-quiz-container');
+            container.innerHTML = '';
+            kpopQuestions.forEach((item, index) => {
+                let html = `<div class="bg-purple-50 p-5 rounded-2xl border border-purple-100" id="k-q-${index}">
+                    <p class="font-bold text-lg text-purple-900">${item.q}</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">`;
+                item.options.forEach((opt, optIndex) => {
+                    html += `<button onclick="checkKpop(${index}, ${optIndex}, ${item.answer})" class="p-3 bg-white hover:bg-pink-100 border-2 border-purple-200 rounded-xl font-semibold transition">${opt}</button>`;
+                });
+                html += `</div><p id="k-feedback-${index}" class="mt-2 text-sm font-medium hidden"></p></div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        function checkKpop(qIndex, selected, correct) {
+            const feedback = document.getElementById(`k-feedback-${qIndex}`);
+            feedback.classList.remove('hidden');
+            if (selected === correct) {
+                feedback.innerHTML = "✨ Bonne réponse !";
+                feedback.className = "mt-2 text-sm font-bold text-green-600";
+                triggerMegaConfetti();
+            } else {
+                feedback.innerHTML = "❌ Oups, raté ! Clique sur une autre réponse pour réessayer.";
+                feedback.className = "mt-2 text-sm font-bold text-red-600";
+            }
+        }
+
+        // ---------- QUIZ ANIMÉ ADAPTÉ AUX 6 PHOTOS DE PERSONNAGES ----------
+        const animeQuestions = [
+            { q: "1. Quel est le nom de ce personnage aux yeux bleus perçants (Jujutsu Kaisen) ?", img: "Satoru Gojo_.jpg", options: ["Megumi Fushiguro", "Satoru Gojo", "Yuji Itadori", "Suguru Geto"], answer: 1 },
+            { q: "2. Comment s'appelle ce pourfendeur de démons maître du souffle du feu (Demon Slayer) ?", img: "téléchargé (3).jpg", options: ["Zenitsu Agatsuma", "Inosuke Hashibira", "Tanjiro Kamado", "Giyu Tomioka"], answer: 2 },
+            { q: "3. Quel est le nom de ce redoutable assassin aux cheveux blancs (Hunter x Hunter) ?", img: "White haired brat _killua zoldyk #animewallpapers #hunterxhunter #hxh #killua #gon #hisoka #fandom.jpg", options: ["Killua Zoldyck", "Gon Freecss", "Kurapika", "Hisoka"], answer: 0 },
+            { q: "4. Comment s'appelle ce prodige manipulateur et mystérieux (Classroom of the Elite) ?", img: "Ayanokoji.jpg", options: ["Kiyotaka Ayanokoji", "Kakeru Ryuen", "Ken Suguru", "Kohei Katsuragi"], answer: 0 },
+            { q: "5. Quel est le nom de cet avocat devenu sorcier (Jujutsu Kaisen) ?", img: "Higuruma Hiromi.jpg", options: ["Kento Nanami", "Hiromi Higuruma", "Masamichi Yaga", "Hajime Kashimo"], answer: 1 },
+            { q: "6. Comment s'appelle cette cosplayeuse haute en couleur (My Dress-Up Darling) ?", img: "Marin Kitagawa.jpg", options: ["Shizuku Kuroe", "Marin Kitagawa", "Sajuna Inui", "Rinne Amano"], answer: 1 }
+        ];
+
+        function loadAnimeQuiz() {
+            const container = document.getElementById('anime-quiz-container');
+            container.innerHTML = '';
+            animeQuestions.forEach((item, index) => {
+                let html = `<div class="bg-blue-50 p-5 rounded-2xl border border-blue-100 text-center mb-6" id="a-q-${index}">
+                    <p class="font-bold text-lg text-blue-900">${item.q}</p>
+                    <div class="my-4 max-w-xs mx-auto bg-black/10 rounded-xl overflow-hidden p-1 border border-blue-200">
+                        <img src="${item.img}" class="rounded-lg w-full h-44 object-cover shadow-sm" alt="Personnage Anime">
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto">`;
+                item.options.forEach((opt, optIndex) => {
+                    html += `<button onclick="checkAnime(${index}, ${optIndex}, ${item.answer})" class="p-3 bg-white hover:bg-blue-100 border-2 border-blue-200 rounded-xl font-semibold transition">${opt}</button>`;
+                });
+                html += `</div><p id="a-feedback-${index}" class="mt-3 font-bold text-sm hidden"></p></div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        function checkAnime(qIndex, selected, correct) {
+            const feedback = document.getElementById(`a-feedback-${qIndex}`);
+            feedback.classList.remove('hidden');
+            if (selected === correct) {
+                feedback.innerHTML = "✨ Bravo ! C'est la bonne réponse ! Otaku validée ✅";
+                feedback.className = "mt-3 font-bold text-sm text-green-600";
+                triggerMegaConfetti();
+            } else {
+                feedback.innerHTML = "❌ Raté ! Pas de panique, retente une autre réponse !";
+                feedback.className = "mt-3 font-bold text-sm text-red-600";
+            }
+        }
+
+        // ---------- CLICKER GAME ----------
+        let score = 0;
+        let timeLeft = 10;
+        let clickerTimer = null;
+        let isPlaying = false;
+
+        function startClickerGame() {
+            if (isPlaying) return;
+            score = 0;
+            timeLeft = 10;
+            isPlaying = true;
+            document.getElementById('click-score').innerText = score;
+            document.getElementById('click-timer').innerText = timeLeft;
+            document.getElementById('start-clicker-btn').innerText = "C'est parti ! CLIQUE !";
+
+            clickerTimer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('click-timer').innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(clickerTimer);
+                    isPlaying = false;
+                    document.getElementById('start-clicker-btn').innerText = "Rejouer au Clicker";
+                    triggerMegaConfetti();
+                    alert(`🏁 Temps écoulé ! Score final de Carmen : ${score} clics ! 🎉`);
+                }
+            }, 1000);
+        }
+
+        function incrementClick() {
+            if (!isPlaying) return;
+            score++;
+            document.getElementById('click-score').innerText = score;
+        }
+    </script>
+</body>
+</html>
